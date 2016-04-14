@@ -4,14 +4,27 @@ var adjectives = require('./adjectives');
 var iscool = require('iscool')();
 var randomId = require('idmaker').randomId;
 var probable = require('probable');
+var SearchFlickr = require('./search-flickr');
+var queue = require('d3-queue').queue;
 
 function MakeMerch(createOpts) {
   var wordnikAPIKey;
   var request;
+  var includeImages;
+  var flickrAPIKey;
 
   if (createOpts) {
     wordnikAPIKey = createOpts.wordnikAPIKey;
     request = createOpts.request;
+    includeImages = createOpts.includeImages;
+    flickrAPIKey = createOpts.flickrAPIKey;
+  }
+
+  if (includeImages && flickrAPIKey) {
+    var searchFlickr = SearchFlickr({
+      flickrAPIKey: flickrAPIKey,
+      request: request
+    });
   }
 
   var randomObjectsBaseURL = 'http://api.wordnik.com/v4/words.json/' + 
@@ -64,7 +77,12 @@ function MakeMerch(createOpts) {
       else {
         items = wordObjects.map(getWordFromObject);
       }
-      done(null, items);
+      if (!includeImages) {
+        done(null, items);
+      }
+      else {
+        getImagesForItems(items, done);
+      }
     }
   }
 
@@ -113,6 +131,30 @@ function MakeMerch(createOpts) {
       item.cost = ((probable.roll(9500) + 500) * theQuantity).toFixed(2);
     }  
     return item;
+  }
+
+  function getImagesForItems(items, done) {
+    var q = queue();
+    items.forEach(addItemToQueue);
+    q.awaitAll(passItems);
+
+    function addItemToQueue(item) {
+      q.defer(searchFlickr, item.thing);
+    }
+
+    function passItems(error, results) {
+      debugger;
+      if (error) {
+        done(error);
+      }
+      else {
+        for (var i = 0; i < results.length; ++i) {
+          items[i].imageURL = results[i].imageURL;
+          items[i].imageAttribution = results[i].imageAttribution;
+        }
+        done(null, items);
+      }
+    }
   }
 
   return makeMerch;
