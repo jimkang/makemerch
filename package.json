@@ -1,6 +1,6 @@
 {
   "name": "makemerch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generates gr8 merchandise!",
   "main": "index.js",
   "scripts": {
