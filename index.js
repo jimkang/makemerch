@@ -6,6 +6,7 @@ var randomId = require('idmaker').randomId;
 var probable = require('probable');
 var SearchFlickr = require('./search-flickr');
 var queue = require('d3-queue').queue;
+var assign = require('lodash.assign');
 
 function MakeMerch(createOpts) {
   var wordnikAPIKey;
@@ -143,14 +144,12 @@ function MakeMerch(createOpts) {
     }
 
     function passItems(error, results) {
-      debugger;
       if (error) {
         done(error);
       }
       else {
         for (var i = 0; i < results.length; ++i) {
-          items[i].imageURL = results[i].imageURL;
-          items[i].imageAttribution = results[i].imageAttribution;
+          items[i] = assign(items[i], results[i]);
         }
         done(null, items);
       }

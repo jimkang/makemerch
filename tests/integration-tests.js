@@ -47,6 +47,7 @@ test('Image test', function imageTest(t) {
       t.ok(item.thing.length > 0, 'Item has a thing.');
       t.ok(item.cost.length > 0, 'Item has a cost.');
       t.ok(item.imageURL.length > 0, 'Item has an imageURL.');
+      t.ok(item.largeImageURL.length > 0, 'Item has an largeImageURL.');
     }
     
     // console.log(JSON.stringify(items, null, '  '));

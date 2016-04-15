@@ -1,4 +1,5 @@
 var probable = require('probable');
+var pathExists = require('object-path-exists');
 
 function SearchFlickr(createOpts, done) {
   var flickrAPIKey;
@@ -59,8 +60,25 @@ function SearchFlickr(createOpts, done) {
       }
       else {
         // The second element should be the "Square 150" size.
-        var squareSize = sizesResponse.sizes.size[1];
-        result.imageURL = squareSize.source;
+        if (pathExists(sizesResponse, ['sizes', 'size'])) {
+          var sizeArray = sizesResponse.sizes.size;
+          if (sizeArray.length > 1) {
+            var squareSize = sizeArray[1];
+            result.imageURL = squareSize.source;
+            // Try to get the "medium 640" size, but if that's not available, go with the
+            // largest one that's not a thumbnail.
+            var largeImageIndex = 6;
+
+            if (sizeArray.length < 4) {
+              largeImageIndex = 1;
+            }
+            else if (sizeArray.length < 7)  {
+              largeImageIndex = sizeArray.length - 1;
+            }
+
+            result.largeImageURL = sizeArray[largeImageIndex].source;
+          }
+        }
         done(null, result);
       }
     }
